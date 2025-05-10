@@ -1,0 +1,5 @@
+# Folders
+frontend/node_modules/
+
+# Misc
+*.DS_Store
