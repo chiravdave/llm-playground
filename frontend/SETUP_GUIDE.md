@@ -22,6 +22,9 @@ npm start
 
 The application should now be running at http://127.0.0.1:3000.
 
+**NOTES**
+- To set different backend endpoint, update the  `.env` file. 
+
 ## Troubleshooting
 
 - **CSS styles not applied**: Make sure you have imported Tailwind directives in `src/index.css`

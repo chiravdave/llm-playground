@@ -1,34 +1,38 @@
 import React, { useState, useEffect } from "react";
 
+
+const BACKEND_ENDPOINT = process.env.REACT_APP_BACKEND_ENDPOINT;
+
+
+async function handleSendParam(paramName, value, label) {
+  try {
+    const samplingParam = {[paramName]: value};
+    const response = await fetch(`http://${BACKEND_ENDPOINT}/set-sampling-param`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(samplingParam)
+    });
+
+    if(!response.ok) {
+      throw new Error(`Failed to set ${label} parameter`);
+    }
+  } catch(error) {
+    console.error(error.message);
+  }
+}
+
 export default function InputRange({label, paramName, defaultValue, min, max, step}) {
   const [value, setValue] = useState(defaultValue);
 
-  async function handleSendParam() {
-    try {
-      const samplingParam = {[paramName]: value};
-      const response = await fetch("http://localhost:8000/set-sampling-param", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(samplingParam)
-      });
-
-      if(!response.ok) {
-        throw new Error(`Failed to set ${label} parameter`);
-      }
-    } catch(error) {
-      console.error(error.message);
-    }
-  }
-
   useEffect(() => {
     const timeout = setTimeout(() => {
-      handleSendParam();
+      handleSendParam(paramName, value, label);
     }, 5000); // Wait for 5 secs before sending the sampling parameter
 
     return () => clearTimeout(timeout);
-  }, [value]);
+  }, [paramName, value, label]);
 
   return (
     <div>
