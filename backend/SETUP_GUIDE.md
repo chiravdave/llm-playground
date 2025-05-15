@@ -13,16 +13,25 @@ Make sure you have the following installed:
 
 Create a virtual environment and install all the required packages.
 
+```bash
+python3 -m venv <YOUR_ENV_NAME>
+source <YOUR_ENV_NAME>/bin/activate
+pip3 install -r requirements.txt
+```
+
 ## Step 2: Start the Development Server
 
 ```bash
-python3 app.py --model_id Qwen/Qwen2.5-0.5B-Instruct --dtype bfloat16
+python3 app.py --model_id Qwen/Qwen2.5-0.5B-Instruct --dtype bfloat16 --device cpu
 ```
 
 The application should now be running at http://127.0.0.1:8000.
 
+**NOTES**
+- You can run any model available in Hugginface. Just pass the correct `model_id`.
+
 ## Customization
-Check **parser.py** file to see all possible tunable arguments to run your model.
+Check **parser.py** file to see all possible tunable arguments to run your model & backend server.
 
 ## API Documentation
 
