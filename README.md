@@ -1,5 +1,7 @@
 # LLM Playground App
 
+![Demo](demo.gif)
+
 Large Language Models (LLMs) have become a powerful tool for a wide range of applications, but running them locally often requires navigating a 
 fragmented ecosystem of separate frontends, backends, and complex installations. Most existing solutions either require significant manual 
 setup or are bundled into overly complicated systems that are difficult for everyday users to get started with.
@@ -20,8 +22,8 @@ Whether you're a developer, researcher, or curious tinkerer, this project is des
 
 - Completions & Chat interface with user, and assistant messages
 - Parameter controls for temperature, max output token length, top-p, and top-k
-- Responsive layout with sidebar navigation
-- Built with React and Tailwind CSS
+- Works with any model hosted on Huggingface
+- Fully offline operation after a one-time download of model weights; no internet connection needed to run or interact with your LLMs.
 
 ## Tech Stack
 
@@ -62,7 +64,3 @@ If you’re interested in contributing:
 * Submit a pull request anytime—happy to collaborate!
 
 We're excited to build this with you. Let’s make local LLMs accessible to all 🚀
-
-## Authors
-
-- [@chiravdave](https://github.com/chiravdave/chiravdave)
