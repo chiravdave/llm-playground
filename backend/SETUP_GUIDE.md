@@ -37,3 +37,7 @@ Check **parser.py** file to see all possible tunable arguments to run your model
 
 - Swagger UI: http://127.0.0.1:8000/docs
 - ReDoc: http://127.0.0.1:8000/redoc
+
+## Troubleshooting
+
+- Set `device` argument properly according to your underline hardware. For Mac users, set it to `cpu`. 
