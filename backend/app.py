@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 from asyncio import sleep
 from fastapi import FastAPI, Response, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import uvicorn
 
 from local_llm import ChatCompletionLLM
@@ -44,9 +43,6 @@ app.add_middleware(
 )
 
 
-class StreamRequest(BaseModel):
-    stream: bool
-
 @app.post("/set-sampling-param")
 async def set_sampling_param(sampling_param: Dict[str, Any]):
     """
@@ -63,16 +59,15 @@ async def set_sampling_param(sampling_param: Dict[str, Any]):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/set-streaming")
-async def set_streaming(stream_request: StreamRequest):
+@app.post("/set-generation-param")
+async def set_generation_param(generation_param: Dict[str, bool]):
     """
     Sets streaming for the language model.
 
     ** Parameters **
     - `stream`: Boolean to set streaming. 
     """
-    logger.info(f"Is streaming on?: {stream_request.stream}")
-    app.state.local_llm.stream = stream_request.stream
+    app.state.local_llm.set_generation_param(generation_param)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -95,7 +90,8 @@ async def completions(websocket: WebSocket):
                 await websocket.send_text(json.dumps({"message": "<eos>"}))
             else:
                 assistant_msg = app.state.local_llm.send_nonstream_response(history)
-                await websocket.send_text(json.dumps({"message": assistant_msg}))
+                print(assistant_msg)
+                await websocket.send_text(json.dumps(assistant_msg))
     except WebSocketDisconnect:
         logger.info("Socket disconnected")
     except Exception as e:
@@ -126,8 +122,8 @@ async def chat(websocket: WebSocket):
                 history.append({"role": "assistant", "content": "".join(assistant_msg)})
             else:
                 assistant_msg = app.state.local_llm.send_nonstream_response(history)
-                await websocket.send_text(json.dumps({"message": assistant_msg}))
-                history.append({"role": "assistant", "content": assistant_msg})
+                await websocket.send_text(json.dumps(assistant_msg))
+                history.append({"role": "assistant", "content": assistant_msg["message"]})
 
     except WebSocketDisconnect:
         logger.info("Socket disconnected")

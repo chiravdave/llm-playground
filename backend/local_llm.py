@@ -1,10 +1,15 @@
 from typing import Any, Dict, Generator, List
+import logging
 import gc
 
 from torch import bfloat16, no_grad, cat as torch_cat
 from torch import cuda
 from torch.nn.attention import SDPBackend, sdpa_kernel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ChatCompletionLLM:
@@ -25,13 +30,14 @@ class ChatCompletionLLM:
         }
         self.device = args["device"]
         self.stream = True
+        self.reasoning = False
 
-    def send_nonstream_response(self, messages: List[Dict[str, str]]) -> str:
+    def send_nonstream_response(self, messages: List[Dict[str, str]]) -> Dict[str, str]:
         """
         Method to respond back in non-streaming mode.
         """
         input_ids = self.tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt", return_dict=False
+            messages, add_generation_prompt=True, return_tensors="pt", return_dict=False, enable_thinking=self.reasoning
         ).to(self.device)
 
         with no_grad(), sdpa_kernel(SDPBackend.FLASH_ATTENTION):
@@ -39,16 +45,26 @@ class ChatCompletionLLM:
                 input_ids, **self.sampling_params, pad_token_id=self.tokenizer.eos_token_id
             )
 
-        response = output_ids[0][input_ids.shape[-1]:]
+        response = self.tokenize.decode(output_ids[0][input_ids.shape[-1]:], skip_special_tokens=True)
+        result = dict()
+        if self.reasoning:
+            # Parsing thinking content
+            think_endofindex = response.find("</think>")
+            result["reason"] = response[:think_endofindex]
+            think_endofindex += 8
+        else:
+            think_endofindex = 0
+
+        result["message"] = response[think_endofindex:]
         
-        return self.tokenizer.decode(response, skip_special_tokens=True)
+        return result
 
     def send_streaming_response(self, messages: List[Dict[str, str]]) -> Generator[str, None, None]:
         """
         Method to respond back in streaming mode.
         """
         input_ids = self.tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt", return_dict=False
+            messages, add_generation_prompt=True, return_tensors="pt", return_dict=False, enable_thinking=self.reasoning
         ).to(self.device)
 
         past_key_values, sampling_params = None, self.sampling_params.copy()
@@ -73,6 +89,16 @@ class ChatCompletionLLM:
 
     def set_sampling_param(self, sampling_param: Dict[str, Any]) -> None:
         self.sampling_params.update(sampling_param)
+
+    def set_generation_param(self, generation_param: Dict[str, bool]) -> None:
+        if "stream" in generation_param:
+            logger.info(f"Setting streaming to: {generation_param['stream']}")
+            self.stream = generation_param["stream"]
+        elif "reason" in generation_param:
+            logger.info(f"Setting reasoning to: {generation_param['reason']}")
+            self.reasoning = generation_param["reason"]
+        else:
+            logger.error(f"Invalid generation param passed: {generation_param}")
 
     def set_model_quantization(self, args: Dict[str, Any]) -> BitsAndBytesConfig:
         return BitsAndBytesConfig(

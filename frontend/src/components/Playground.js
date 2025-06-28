@@ -5,38 +5,10 @@ import CompletionsPlayground from "./CompletionsPlayground";
 import SamplingParams from "./SamplingParams";
 
 
-const BACKEND_ENDPOINT = process.env.REACT_APP_BACKEND_ENDPOINT;
-
-
-async function handleStreamingToggle(isStreaming) {
-  try {
-    const response = await fetch(`http://${BACKEND_ENDPOINT}/set-streaming`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({stream: isStreaming})
-    });
-
-    if(!response.ok) {
-      throw new Error(`Failed to set streaming to ${isStreaming}`);
-    }
-  } catch(error) {
-    console.error(error.message);
-  }
-}
-
 export default function Playground() {
   const [isChatMode, setIsChatMode] = useState(false);
   const [isStreaming, setIsStreaming] = useState(true);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      handleStreamingToggle(isStreaming);
-    }, 2000); // Wait for 2 secs before sending the sampling parameter
-
-    return () => clearTimeout(timeout);
-  }, [isStreaming]);
+  const [isReasoning, setIsReasoning] = useState(false);
 
   return (
     <div className="flex h-screen bg-white text-gray-800">
@@ -71,7 +43,8 @@ export default function Playground() {
         </div>
       </div>
 
-      <SamplingParams isStreaming={isStreaming} setIsStreaming={setIsStreaming}/>
+      <SamplingParams isStreaming={isStreaming} setIsStreaming={setIsStreaming} isReasoning={isReasoning} 
+        setIsReasoning={setIsReasoning}/>
     </div>
   )
 }

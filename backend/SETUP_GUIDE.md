@@ -40,4 +40,4 @@ Check **parser.py** file to see all possible tunable arguments to run your model
 
 ## Troubleshooting
 
-- Set `device` argument properly according to your underline hardware. For Mac users, set it to `cpu`. 
+- Set `device` argument properly according to your underline hardware. For Mac users, set it to `cpu`.

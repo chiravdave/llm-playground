@@ -5,7 +5,7 @@ import MessageInput from "./MessageInput";
 const BACKEND_ENDPOINT = process.env.REACT_APP_BACKEND_ENDPOINT;
 
 
-export default function ChatPlayground({ isStreaming }) {
+export default function ChatPlayground({ isStreaming, isReasoning }) {
   const [chatHistory, setChatHistory] = useState([]);
   const [error, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -14,6 +14,7 @@ export default function ChatPlayground({ isStreaming }) {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
   const isStreamingRef = useRef(isStreaming);
+  const isReasoningRef = useRef(isReasoning);
 
   // WebSocket setup.
   const connectWebSocket = () => {
@@ -83,11 +84,6 @@ export default function ChatPlayground({ isStreaming }) {
     };
   };
 
-  // Keeping the isStreamingRef updated with latest value of isStreaming.
-  useEffect(() => {
-    isStreamingRef.current = isStreaming;
-  }, [isStreaming]);
-
   async function sendMessageWithRetries(message) {
     const maxRetries = 3;
     let attempts = 0;
@@ -135,11 +131,15 @@ export default function ChatPlayground({ isStreaming }) {
     };
   }, []);
 
+  // Keeping the isStreamingRef updated with latest value of isStreaming.
+  useEffect(() => {
+    isStreamingRef.current = isStreaming;
+    isReasoningRef.current = isReasoning;
+  }, [isStreaming, isReasoning]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
-
-
 
   return (
     <div className="flex flex-col h-full overflow-hidden">

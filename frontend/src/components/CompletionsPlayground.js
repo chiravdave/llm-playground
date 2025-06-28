@@ -5,14 +5,16 @@ import MessageInput from "./MessageInput";
 const BACKEND_ENDPOINT = process.env.REACT_APP_BACKEND_ENDPOINT;
 
 
-export default function CompletionsPlayground({ isStreaming }) {
+export default function CompletionsPlayground({ isStreaming, isReasoning }) {
   const [userMsg, setUserMsg] = useState("");
   const [assistantMsg, setAssistantMsg] = useState("");
+  const [assistantTypeMode, setAssistantTypeMode] = useState("")
   const [error, setError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [waitForAssistant, setWaitForAssistant] = useState(false);
   const socketRef = useRef(null);
   const isStreamingRef = useRef(isStreaming);
+  const isReasoningRef = useRef(isReasoning);
 
   // WebSocket setup.
   const connectWebSocket = () => {
@@ -100,6 +102,11 @@ export default function CompletionsPlayground({ isStreaming }) {
 
     setUserMsg(message);
     setAssistantMsg("");
+    if (isReasoning) {
+      setAssistantTypeMode("Assistant is thinking...");
+    } else {
+      setAssistantTypeMode("Assistant is typing...")
+    }
     setError(false);
     setWaitForAssistant(true);
     await sendMessageWithRetries(message);
@@ -117,7 +124,8 @@ export default function CompletionsPlayground({ isStreaming }) {
   // Keeping the isStreamingRef updated with latest value of isStreaming.
   useEffect(() => {
     isStreamingRef.current = isStreaming;
-  }, [isStreaming]);
+    isReasoningRef.current = isReasoning;
+  }, [isStreaming, isReasoning]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -144,7 +152,7 @@ export default function CompletionsPlayground({ isStreaming }) {
         )}
         {/* Assistant Typing Indicator */}
           {userMsg !== "" && assistantMsg === "" && (<div className="mb-4 mr-auto w-2/5 px-4 py-2 bg-gray-100 text-gray-500 rounded-lg">
-            <span className="animate-pulse">Assistant is thinking...</span>
+            <span className="animate-pulse">{assistantTypeMode}</span>
           </div>
           )}
       </div>
